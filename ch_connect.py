@@ -50,10 +50,12 @@ client = Client(host='127.0.0.1')
 table_name = "vidyocdr"
 primary_key = 'join_time'
 file = "data/vidyocdr_3m.csv"
+batch_size = 200000
+gt1 = datetime.now()
 
 df_iterator = pd.read_csv(
     file,
-    chunksize=100000, parse_dates=True, infer_datetime_format=True,
+    chunksize=batch_size, parse_dates=True, infer_datetime_format=True,
     low_memory=False)
 
 t3 = datetime.now()
@@ -97,3 +99,5 @@ for i, df_chunk in enumerate(df_iterator):
 
     print(f'Done writing chunk, written in ', datetime.now() - t2)
     t3 = datetime.now()
+
+print(f'Total time taken for {batch_size}: ', datetime.now() - gt1)
