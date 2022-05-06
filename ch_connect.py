@@ -4,7 +4,6 @@ import traceback
 from clickhouse_driver import Client
 import pandas as pd
 from datetime import datetime
-from dt_auto import dt_inplace
 
 PANDAS_TO_CH_TYPES = {
     'int64': 'Int64',
@@ -13,6 +12,22 @@ PANDAS_TO_CH_TYPES = {
     'datetime': 'DateTime',
     'datetime64': 'DateTime'
 }
+
+
+def dt_inplace(df):
+    """Automatically detect and convert (in place!) each
+    dataframe column of datatype 'object' to a datetime just
+    when ALL of its non-NaN values can be successfully parsed
+    by pd.to_datetime().  Also returns a ref. to df for
+    convenient use in an expression.
+    """
+    from pandas.errors import ParserError
+    for c in df.columns[df.dtypes == 'object']:  # don't count ints and floats
+        try:
+            df[c] = pd.to_datetime(df[c])
+        except (ParserError, ValueError, TypeError, OverflowError):  # Can't convert some of the columns
+            pass  # ...so leave whole column as-is unconverted
+    return df
 
 
 def get_create_clickhouse_table_query(table_name, column_names,
@@ -81,9 +96,9 @@ def treat_column_names(column_names, alteration_function=None):
 
 
 client = Client(host='127.0.0.1')
-table_name = "zoom_meetings"
-primary_key = 'Start Time'
-file = "data/ignishealth_Zoom_meetings.csv"
+table_name = "vidyocdr1"
+primary_key = 'join_time'
+file = "data/vidyocdr_3m.csv"
 
 batch_size = 100000
 gt1 = datetime.now()
@@ -97,7 +112,7 @@ t3 = datetime.now()
 for i, df_chunk in enumerate(df_iterator):
     t1 = datetime.now()
     df_chunk = dt_inplace(df_chunk)
-    print(df_chunk.dtypes)
+    # print(df_chunk.dtypes)
     print(f'Time Spend reading chunk {i}: ', t1 - t3)
     columns_rename_dict = treat_column_names(df_chunk.columns, to_ascii)
     df_chunk = df_chunk.rename(columns=columns_rename_dict)
@@ -123,15 +138,15 @@ for i, df_chunk in enumerate(df_iterator):
         drop_table_query = get_drop_table_query(table_name)
         drop_create_clickhouse_table(client, table_query, drop_table_query)
 
-    print('before filling na', df_chunk.dtypes)
+    # print('before filling na', df_chunk.dtypes)
     # fill out N.As in the data
     df_chunk.fillna(df_chunk.dtypes.replace({'float64': 0.0, 'O': 'NULL', 'int64': 0, 'datetime64[ns]': '1970-01-01'}),
                     downcast='infer', inplace=True)
-    print(df_chunk['end_time'])
+    # print(df_chunk['end_time'])
 
     # apply data types to pandas dataframe from the constructed table data types
-    print('pandas data types', pandas_data_types)
-    print('current dtypes', df_chunk.dtypes)
+    # print('pandas data types', pandas_data_types)
+    # print('current dtypes', df_chunk.dtypes)
     df_chunk = df_chunk.astype(pandas_data_types)
 
     t2 = datetime.now()
