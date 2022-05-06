@@ -1,6 +1,7 @@
 version: "3"
 services:
   server:
+    container_name: ch-server
     image: clickhouse/clickhouse-server
     ports:
       - "8123:8123"
