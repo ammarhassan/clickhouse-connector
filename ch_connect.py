@@ -4,10 +4,14 @@ import traceback
 from clickhouse_driver import Client
 import pandas as pd
 from datetime import datetime
+from dt_auto import dt_inplace
 
 PANDAS_TO_CH_TYPES = {
     'int64': 'Int64',
-    'float64': 'Float64'
+    'float64': 'Float64',
+    'datetime64[ns]': 'DateTime',
+    'datetime': 'DateTime',
+    'datetime64': 'DateTime'
 }
 
 
@@ -57,8 +61,8 @@ def treat_column_names(column_names, alteration_function=None):
     """
     This function updates the name of the columns of the input dataframe according to the
     alteration function.
+    :param column_names:
     :param alteration_function:
-    :param dataframe:
     :return:
     """
     alteration_function = alteration_function or to_ascii
@@ -92,9 +96,12 @@ df_iterator = pd.read_csv(
 t3 = datetime.now()
 for i, df_chunk in enumerate(df_iterator):
     t1 = datetime.now()
+    df_chunk = dt_inplace(df_chunk)
+    print(df_chunk.dtypes)
     print(f'Time Spend reading chunk {i}: ', t1 - t3)
     columns_rename_dict = treat_column_names(df_chunk.columns, to_ascii)
     df_chunk = df_chunk.rename(columns=columns_rename_dict)
+
     if i == 0:
         # get pandas data types
         pandas_data_types = dict([(k, str(v)) for k, v in dict(df_chunk.dtypes).items()])
@@ -112,16 +119,19 @@ for i, df_chunk in enumerate(df_iterator):
         table_query = get_create_clickhouse_table_query(
             table_name, list(df_chunk.columns),
             columns_rename_dict[primary_key], ch_data_types)
-        print(table_query)
 
         drop_table_query = get_drop_table_query(table_name)
         drop_create_clickhouse_table(client, table_query, drop_table_query)
 
+    print('before filling na', df_chunk.dtypes)
     # fill out N.As in the data
-    df_chunk.fillna(df_chunk.dtypes.replace({'float64': 0.0, 'O': 'NULL', 'int64': 0}),
+    df_chunk.fillna(df_chunk.dtypes.replace({'float64': 0.0, 'O': 'NULL', 'int64': 0, 'datetime64[ns]': '1970-01-01'}),
                     downcast='infer', inplace=True)
+    print(df_chunk['end_time'])
 
     # apply data types to pandas dataframe from the constructed table data types
+    print('pandas data types', pandas_data_types)
+    print('current dtypes', df_chunk.dtypes)
     df_chunk = df_chunk.astype(pandas_data_types)
 
     t2 = datetime.now()
