@@ -1,1 +1,5 @@
-<access_management>1</access_management>
+<clickhouse>
+    <users>
+        <access_management>1</access_management>
+    </users>
+</clickhouse>
