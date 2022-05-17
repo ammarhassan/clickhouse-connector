@@ -7,6 +7,11 @@ services:
       - "8123:8123"
       - "9000:9000"
       - "9009:9009"
+    environment:
+      - CLICKHOUSE_DB=trp
+      - CLICKHOUSE_USER=trp_user
+      - CLICKHOUSE_PASSWORD=trppassword
+      - CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT=1
     ulimits:
       nproc: 65535
       nofile:
