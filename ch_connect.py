@@ -94,11 +94,11 @@ def treat_column_names(column_names, alteration_function=None):
     return column_names_dict
 
 
+client = Client(host='127.0.0.1', database='trp', user='trp_user', password='trppassword')
 
-client = Client(host='127.0.0.1')
-table_name = "vidyocdr1"
-primary_key = 'join_time'
-file = "data/vidyocdr_3m.csv"
+table_name = "zoommeetings"
+primary_key = 'Start Time'
+file = "data/ignishealth_Zoom_meetings.csv"
 
 batch_size = 100000
 gt1 = datetime.now()

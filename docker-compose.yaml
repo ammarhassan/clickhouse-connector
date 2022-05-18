@@ -1,7 +1,7 @@
 version: "3"
 services:
   server:
-    container_name: ch-server
+    container_name: clickhouse-server
     image: clickhouse/clickhouse-server
     ports:
       - "8123:8123"
@@ -20,8 +20,7 @@ services:
     volumes:
     - db_data:/var/lib/clickhouse/
     - .:/data
-    - ./conf/users/:/etc/clickhouse-server/users.d/
-    - ./conf/server/:/etc/clickhouse-server/config.d/
+    - ./conf/server/config.xml:/etc/clickhouse-server/config.xml
 volumes:
   db_data:
     driver: local
