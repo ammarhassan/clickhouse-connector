@@ -10,7 +10,7 @@ services:
     environment:
       - CLICKHOUSE_DB=trp
       - CLICKHOUSE_USER=trp_user
-      - CLICKHOUSE_PASSWORD=trppassword
+      - CLICKHOUSE_PASSWORD=829hfhwesioefh83he
       - CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT=1
     ulimits:
       nproc: 65535
